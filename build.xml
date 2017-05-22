@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="lareport" default="dist">
+
+	<property name="project.name" value="lareport" />
+	<property name="version.file" location="buildversion.properties" />
+	<property file="${version.file}" />
+	<property name="MAJOR" value="${build.major.number}" />
+	<property name="MINOR" value="${build.minor.number}" />
+	<property name="MICRO" value="${build.micro.number}" />
+	<property name="BUILDNUM" value="${build.revision.number}"/>
+	<property name="TITLE" value="${title}"/>
+	
+	
+	<property name="base.dir" location="../" />
+	<property name="src.dir" location="${base.dir}/src" />
+	<property name="conf.dir" location="${base.dir}/conf" />
+	<property name="bin.dir" location="${base.dir}/bin" />
+	<property name="lib.dir" location="${base.dir}/lib" />
+	<property name="dist.dir" location="${base.dir}/dist" />
+	<property name="build.dir" location="${base.dir}/build" />
+	<property name="classes.dir" location="${base.dir}/classes" />
+	
+	<target name="default" depends="dist">
+		<echo>Building the jar is complete</echo>
+	</target>
+	
+	<target name="init" depends="clean,buildnumber">
+		<tstamp>
+			<format property="build.time" pattern="MMddyyyyhhmm" />
+		</tstamp>
+		<mkdir dir="${classes.dir}" />
+		<property name="jar.version" value="${MAJOR}.${MINOR}.${MICRO}.${build.revision.number}" />
+		<property name="version" value="${MAJOR}.${MINOR}.${MICRO}.${build.revision.number}-${build.time}" />
+		<echo>$${jar.version} : ${jar.version}</echo>
+		<echo>$${version info in manifest file} : ${version}</echo>
+	</target> 
+	
+	<target name="compile" depends="init" description="Compiles source code">
+		<javac srcdir="${src.dir}" destdir="${classes.dir}" debug="true" optimize="true" deprecation="true">
+			<classpath>
+        		<fileset dir="${lib.dir}" includes="*.jar"/>
+      		</classpath> 
+		</javac>
+	</target>
+	
+	<target name="dist" depends="compile" description="create the jar file">
+		<tstamp>
+			<format property="compiled.date" pattern="MMM dd, yyyy hh:mm aa" />
+		</tstamp>
+		<jar jarfile="${dist.dir}/adg-${project.name}-${jar.version}.jar" 
+				basedir="${classes.dir}" 
+			   includes="com/adg/report/lacounty/**"
+			           
+			   excludes="**/*Test.*">
+			<manifest>
+				<attribute name="Implementation-Title" value="${TITLE}" />
+				<attribute name="Implementation-Version" value="${version}" />
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Built-Date" value="${compiled.date}" />
+			</manifest>
+  			<fileset dir="${conf.dir}">
+  				<include name="log4j.properties" />
+  			</fileset>
+		</jar>
+	</target> 
+	
+	<target name="clean" description="Cleans build directory before building">
+		<echo>Clean classes directory before build</echo>
+		<delete dir="${classes.dir}" />
+	</target>
+	
+	<!--  This target will overwrite the build version info to buildversion.properties 
+	   File; so the build increment that is incremented here is for the next build -->
+	<target name="buildnumber">
+		<propertyfile  file="${version.file}">
+			<entry key="build.major.number" type="int" default="1" />
+			<entry key="build.minor.number" type="int" default="0" />
+			<entry key="build.micro.number" type="int" default="1" />
+            <entry key="build.revision.number" type="int" operation="+" value="1" pattern="0000"/>
+    	</propertyfile>
+    </target>
+</project>
